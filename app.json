@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "livestock-frontend",
-    "slug": "livestock-frontend",
+    "slug": "livestock",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo-placeholder.png",
@@ -24,7 +24,8 @@
       "navigationBar": {
         "backgroundColor": "#06140B",
         "barStyle": "light-content"
-      }
+      },
+      "package": "com.sokslivestock.livestock"
     },
     "web": {
       "output": "static",
@@ -49,6 +50,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "17390906-6f2f-47bc-b7ef-292805be14da"
+      }
+    },
+    "owner": "soks-livestock"
   }
 }

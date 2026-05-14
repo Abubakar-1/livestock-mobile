@@ -8,7 +8,8 @@ import { clearAuthToken, getAuthToken } from "../utils/storage";
  * Update BASE_URL to your actual API endpoint.
  */
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ?? "http://10.200.225.182:3001/api";
+  process.env.EXPO_PUBLIC_API_URL ??
+  "https://livestock-backend-production.up.railway.app/api";
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

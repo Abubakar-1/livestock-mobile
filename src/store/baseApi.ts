@@ -8,7 +8,8 @@ import { clearAuth } from "../features/auth/authSlice";
 import { RootState } from "./store";
 
 const BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || "http://10.200.225.182:3001/api";
+  process.env.EXPO_PUBLIC_API_URL ??
+  "https://livestock-backend-production.up.railway.app/api";
 
 // 1. Base Query
 const baseQuery = fetchBaseQuery({
