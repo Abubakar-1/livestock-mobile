@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextStyle, StyleSheet } from 'react-native';
+import { Text, TextStyle, StyleSheet, StyleProp, TextProps } from 'react-native';
 import { Colors, Typography } from '../../constants/theme';
 
 type Variant =
@@ -12,13 +12,13 @@ type Variant =
   | 'caption'
   | 'label';
 
-interface AppTextProps {
+interface AppTextProps extends TextProps {
   children: React.ReactNode;
   variant?: Variant;
   color?: string;
   align?: 'left' | 'center' | 'right';
-  style?: TextStyle;
-  numberOfLines?: number;
+  style?: StyleProp<TextStyle>;
+  weight?: string | number;
 }
 
 /**
@@ -31,12 +31,18 @@ const AppText: React.FC<AppTextProps> = ({
   color,
   align = 'left',
   style,
-  numberOfLines,
+  weight,
+  ...props
 }) => {
   return (
     <Text
-      numberOfLines={numberOfLines}
-      style={[styles[variant], { color: color ?? styles[variant].color, textAlign: align }, style]}
+      style={[
+        styles[variant],
+        { color: color ?? styles[variant].color, textAlign: align },
+        weight ? { fontWeight: weight as any } : {},
+        style,
+      ]}
+      {...props}
     >
       {children}
     </Text>
