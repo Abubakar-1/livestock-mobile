@@ -8,13 +8,16 @@ import {
   Dimensions,
   Image,
   Modal,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
-  RefreshControl,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { AppText, Button } from "../../src/components/ui";
 import { Colors, Radius, Spacing } from "../../src/constants/theme";
 import { useGetBankDetailsQuery } from "../../src/features/bank-details/bankDetailsApi";
@@ -106,12 +109,17 @@ const BatchDetailsScreen = () => {
   const projectedPeakLow = parseFloat(batch.estimatedSalePriceLow || "0");
   const projectedPeakHigh = parseFloat(batch.estimatedSalePriceHigh || "0");
   const projectedPeakPerUnit = `${projectedPeakLow.toFixed(0)} - ${projectedPeakHigh.toFixed(0)}`;
-  
-  const currentMarketValueLow = parseFloat(String(batch.currentMarketValueLow || "0"));
-  const currentMarketValueHigh = parseFloat(String(batch.currentMarketValueHigh || "0"));
-  const currentMarketValuePerUnit = currentMarketValueLow > 0 
-    ? `₦${currentMarketValueLow.toLocaleString()} - ₦${currentMarketValueHigh.toLocaleString()}`
-    : `₦${marketValuePerUnit.toLocaleString()}`;
+
+  const currentMarketValueLow = parseFloat(
+    String(batch.currentMarketValueLow || "0"),
+  );
+  const currentMarketValueHigh = parseFloat(
+    String(batch.currentMarketValueHigh || "0"),
+  );
+  const currentMarketValuePerUnit =
+    currentMarketValueLow > 0
+      ? `₦${currentMarketValueLow.toLocaleString()} - ₦${currentMarketValueHigh.toLocaleString()}`
+      : `₦${marketValuePerUnit.toLocaleString()}`;
 
   const totalAssetValue = units * marketValuePerUnit;
 
@@ -133,10 +141,11 @@ const BatchDetailsScreen = () => {
         ).toFixed(0)
       : "0";
   const roi = `${roiLow}% - ${roiHigh}%`;
-  
+
   const isSoldOut = unitsLeft < 1;
-  const isComingSoon = batch.status === 'COMING_SOON';
-  const isClosed = isSoldOut || (batch.status !== 'OPEN' && batch.status !== 'ACTIVE');
+  const isComingSoon = batch.status === "COMING_SOON";
+  const isClosed =
+    isSoldOut || (batch.status !== "OPEN" && batch.status !== "ACTIVE");
 
   const handlePurchase = async () => {
     if (units < 1) {
@@ -164,7 +173,7 @@ const BatchDetailsScreen = () => {
     <View style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -240,10 +249,23 @@ const BatchDetailsScreen = () => {
 
         {/* ── Closed Banner ────────────────────────────────────────────────── */}
         {isClosed && (
-          <View style={[styles.closedBanner, isComingSoon && { backgroundColor: Colors.gold }]}>
-            <Ionicons name={isComingSoon ? "calendar-outline" : "lock-closed"} size={16} color={Colors.white} />
+          <View
+            style={[
+              styles.closedBanner,
+              isComingSoon && { backgroundColor: Colors.gold },
+            ]}
+          >
+            <Ionicons
+              name={isComingSoon ? "calendar-outline" : "lock-closed"}
+              size={16}
+              color={Colors.white}
+            />
             <AppText variant="bodySmall" style={styles.closedBannerText}>
-              {isComingSoon ? "COMING SOON — Accepting investments shortly" : (isSoldOut ? "BATCH SOLD OUT" : "CAMPAIGN CLOSED")}
+              {isComingSoon
+                ? "COMING SOON — Accepting investments shortly"
+                : isSoldOut
+                  ? "BATCH SOLD OUT"
+                  : "CAMPAIGN CLOSED"}
             </AppText>
           </View>
         )}
@@ -258,19 +280,25 @@ const BatchDetailsScreen = () => {
             >
               {roiLow}%
             </AppText>
-            <AppText variant="caption">EST. GROWTH</AppText>
+            <AppText variant="caption" color={Colors.white}>
+              EST. GROWTH
+            </AppText>
           </View>
           <View style={styles.metricChip}>
             <AppText variant="h2" style={styles.metricValue}>
               Low
             </AppText>
-            <AppText variant="caption">RISK PROFILE</AppText>
+            <AppText variant="caption" color={Colors.white}>
+              RISK PROFILE
+            </AppText>
           </View>
           <View style={styles.metricChip}>
             <AppText variant="h2" style={styles.metricValue}>
               {unitsLeft}
             </AppText>
-            <AppText variant="caption">UNITS LEFT</AppText>
+            <AppText variant="caption" color={Colors.white}>
+              UNITS LEFT
+            </AppText>
           </View>
         </View>
 
@@ -296,31 +324,44 @@ const BatchDetailsScreen = () => {
               />
               <AppText
                 variant="h3"
-                style={[styles.sectionTitle, { marginLeft: 8, marginBottom: 0 }]}
+                style={[
+                  styles.sectionTitle,
+                  { marginLeft: 8, marginBottom: 0 },
+                ]}
               >
                 Campaign Window
               </AppText>
             </View>
             <View style={styles.campaignCard}>
               <View style={styles.campaignItem}>
-                <AppText variant="caption" color={Colors.textMuted}>STARTS</AppText>
+                <AppText variant="caption" color={Colors.textMuted}>
+                  STARTS
+                </AppText>
                 <AppText variant="body" weight="700">
-                  {new Date(batch.campaignStartDate).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {new Date(batch.campaignStartDate).toLocaleDateString(
+                    undefined,
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}
                 </AppText>
               </View>
               <View style={styles.campaignDivider} />
               <View style={styles.campaignItem}>
-                <AppText variant="caption" color={Colors.textMuted}>ENDS</AppText>
+                <AppText variant="caption" color={Colors.textMuted}>
+                  ENDS
+                </AppText>
                 <AppText variant="body" weight="700">
-                  {new Date(batch.campaignEndDate).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {new Date(batch.campaignEndDate).toLocaleDateString(
+                    undefined,
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )}
                 </AppText>
               </View>
             </View>
@@ -389,10 +430,7 @@ const BatchDetailsScreen = () => {
                   year: "numeric",
                 })}
               </AppText>
-              <AppText
-                variant="caption"
-                style={{ color: "rgba(255,255,255,0.6)" }}
-              >
+              <AppText variant="caption" style={{ color: "white" }}>
                 Target Maturity
               </AppText>
               <View style={styles.activeDot} />
@@ -404,25 +442,50 @@ const BatchDetailsScreen = () => {
         <View style={styles.chartCard}>
           <View style={styles.valueStack}>
             <View style={styles.valueItem}>
-              <AppText variant="caption" color={Colors.textMuted}>Buy For</AppText>
+              <AppText variant="caption" color={Colors.white}>
+                Buy For
+              </AppText>
               <AppText variant="h2" style={styles.chartValue}>
                 ₦{marketValuePerUnit.toLocaleString()}
-                <AppText variant="caption" color={Colors.textMuted}> /unit</AppText>
+                <AppText variant="caption" color={Colors.white}>
+                  {" "}
+                  /unit
+                </AppText>
               </AppText>
             </View>
 
             <View style={styles.valueItem}>
-              <AppText variant="caption" color={Colors.emerald}>Sell For (Projected)</AppText>
-              <AppText variant="h2" color={Colors.emerald} style={styles.chartValue}>
-                ₦{projectedPeakPerUnit.split(' - ').map(v => Number(v).toLocaleString()).join(' - ')}
+              <AppText variant="caption" color={Colors.emerald}>
+                Sell For (Projected)
+              </AppText>
+              <AppText
+                variant="h2"
+                color={Colors.emerald}
+                style={styles.chartValue}
+              >
+                ₦
+                {projectedPeakPerUnit
+                  .split(" - ")
+                  .map((v) => Number(v).toLocaleString())
+                  .join(" - ")}
               </AppText>
             </View>
 
             {currentMarketValueLow > 0 && (
               <View style={styles.valueItem}>
-                <AppText variant="caption" color={Colors.textMuted}>Current Market Value</AppText>
-                <AppText variant="h3" color={Colors.white} style={styles.currentMarketValueText}>
-                  {currentMarketValuePerUnit} <AppText variant="caption" color={Colors.textMuted}> /unit</AppText>
+                <AppText variant="caption" color={Colors.white}>
+                  Current Market Value
+                </AppText>
+                <AppText
+                  variant="h3"
+                  color={Colors.white}
+                  style={styles.currentMarketValueText}
+                >
+                  {currentMarketValuePerUnit}{" "}
+                  <AppText variant="caption" color={Colors.white}>
+                    {" "}
+                    /unit
+                  </AppText>
                 </AppText>
               </View>
             )}
@@ -439,21 +502,32 @@ const BatchDetailsScreen = () => {
           </View>
 
           <View style={styles.rangeLabels}>
-            <AppText variant="caption">Entry</AppText>
-            <AppText variant="caption">Growth ({roi})</AppText>
+            <AppText variant="caption" color={Colors.white}>
+              Entry
+            </AppText>
+            <AppText variant="caption" color={Colors.white}>
+              Growth ({roi})
+            </AppText>
           </View>
         </View>
         <View style={{ height: 180 }} />
       </ScrollView>
 
       {/* ── Bottom Bar ──────────────────────────────────────────────────── */}
-      <View style={[styles.bottomBar, { paddingBottom: Math.max(Spacing.xl, insets.bottom + 8) }]}>
+      <View
+        style={[
+          styles.bottomBar,
+          { paddingBottom: Math.max(Spacing.xl, insets.bottom + 8) },
+        ]}
+      >
         {!isClosed ? (
           <>
             <View style={styles.bottomTopRow}>
               <View style={{ flex: 1 }}>
                 <AppText variant="caption">Total Purchase Amount</AppText>
-                <AppText variant="h2" numberOfLines={1} adjustsFontSizeToFit>₦{totalAssetValue.toLocaleString()}</AppText>
+                <AppText variant="h2" numberOfLines={1} adjustsFontSizeToFit>
+                  ₦{totalAssetValue.toLocaleString()}
+                </AppText>
               </View>
 
               <View style={styles.counterContainer}>
@@ -486,11 +560,21 @@ const BatchDetailsScreen = () => {
           </>
         ) : (
           <View style={styles.closedBottomBar}>
-            <AppText variant="h3" align="center" style={{ color: Colors.textMuted }}>
+            <AppText
+              variant="h3"
+              align="center"
+              style={{ color: Colors.textMuted }}
+            >
               {isComingSoon ? "Coming Soon" : "Campaign Ended"}
             </AppText>
-            <AppText variant="caption" align="center" style={{ color: Colors.textMuted, marginTop: 4 }}>
-              {isComingSoon ? "We are not yet accepting investments for this batch." : "This batch is no longer accepting new investments."}
+            <AppText
+              variant="caption"
+              align="center"
+              style={{ color: Colors.textMuted, marginTop: 4 }}
+            >
+              {isComingSoon
+                ? "We are not yet accepting investments for this batch."
+                : "This batch is no longer accepting new investments."}
             </AppText>
           </View>
         )}
@@ -658,21 +742,21 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   closedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EF4444',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EF4444",
     paddingVertical: 8,
     gap: 8,
   },
   closedBannerText: {
     color: Colors.white,
-    fontWeight: '800',
+    fontWeight: "800",
     letterSpacing: 0.5,
   },
   closedBottomBar: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
   },
   campaignCard: {

@@ -201,28 +201,28 @@ export const BatchCard = ({
     <View style={styles.batchDetailsList}>
       <View style={styles.batchDetailRow}>
         <View style={{ flex: 1 }}>
-          <AppText variant="caption" color={Colors.textMuted}>
+          <AppText variant="caption" color={Colors.white}>
             BUY PRICE
           </AppText>
           <AppText
             variant="h3"
             style={[
               styles.batchDetailValue,
-              isClosed && { color: Colors.textMuted },
+              isClosed && { color: Colors.white },
             ]}
           >
             ₦{Number(price).toLocaleString()}
           </AppText>
         </View>
         <View style={{ flex: 1, alignItems: "flex-end" }}>
-          <AppText variant="caption" color={Colors.textMuted}>
+          <AppText variant="caption" color={Colors.white}>
             DURATION
           </AppText>
           <AppText
             variant="h3"
             style={[
               styles.batchDetailValue,
-              isClosed && { color: Colors.textMuted },
+              isClosed && { color: Colors.white },
             ]}
           >
             {duration} Months
@@ -232,12 +232,12 @@ export const BatchCard = ({
 
       <View style={styles.batchDetailRow}>
         <View style={{ flex: 1 }}>
-          <AppText variant="caption" color={Colors.textMuted}>
+          <AppText variant="caption" color={Colors.white}>
             ESTIMATED SALE PRICE
           </AppText>
           <AppText
             variant="h2"
-            color={isClosed ? Colors.textMuted : Colors.emerald}
+            color={isClosed ? Colors.white : Colors.emerald}
             style={[styles.batchDetailValue, { fontSize: 20 }]}
           >
             ₦
@@ -265,10 +265,10 @@ export const BatchCard = ({
 
     <View style={styles.progressContainer}>
       <View style={styles.progressLabelRow}>
-        <AppText variant="caption" color={Colors.textMuted}>
+        <AppText variant="caption" color={Colors.white}>
           {progress}% Funded
         </AppText>
-        <AppText variant="caption" color={Colors.textMuted}>
+        <AppText variant="caption" color={Colors.white}>
           {unitsLeft} Units Left
         </AppText>
       </View>
