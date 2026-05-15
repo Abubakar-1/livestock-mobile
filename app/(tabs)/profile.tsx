@@ -245,7 +245,7 @@ export default function ProfileScreen() {
                 />
               ) : (
                 <Image
-                  source={require("../../assets/images/user-avatar.png")}
+                  source={require("../../assets/images/user-avatar.webp")}
                   style={styles.avatar}
                 />
               )}

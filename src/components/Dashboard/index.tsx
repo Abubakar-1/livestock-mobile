@@ -293,7 +293,7 @@ export const BatchCard = ({
 export const InsightCard = () => (
   <TouchableOpacity style={styles.insightCard}>
     <Image
-      source={require("../../../assets/images/insight-beef.png")}
+      source={require("../../../assets/images/insight-beef.webp")}
       style={styles.insightImage}
     />
     <View style={styles.insightOverlay}>

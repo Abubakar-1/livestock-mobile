@@ -1,10 +1,17 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Image, Dimensions, Animated, Easing } from 'react-native';
-import { Colors, Typography, Spacing } from '../constants/theme';
-import { AppText } from './ui';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect } from "react";
+import {
+  Animated,
+  Dimensions,
+  Easing,
+  Image,
+  StyleSheet,
+  View,
+} from "react-native";
+import { Colors, Spacing, Typography } from "../constants/theme";
+import { AppText } from "./ui";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 /**
  * SplashScreen component following the provided UI design.
@@ -48,7 +55,7 @@ const SplashScreen = () => {
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -64,26 +71,50 @@ const SplashScreen = () => {
 
   return (
     <LinearGradient
-      colors={[Colors.background, '#0A1C10', Colors.background]}
+      colors={[Colors.background, "#0A1C10", Colors.background]}
       style={styles.container}
     >
       {/* ── Background Glow ────────────────────────────────────────────────── */}
-      <Animated.View style={[styles.glowContainer, { transform: [{ scale: pulseValue }] }]}>
-        <View style={[styles.glowRing, { width: 220, height: 220, opacity: 0.05, borderRadius: 110 }]} />
-        <View style={[styles.glowRing, { width: 180, height: 180, opacity: 0.1, borderRadius: 90 }]} />
-        <View style={[styles.glowRing, { width: 140, height: 140, opacity: 0.15, borderRadius: 70 }]} />
+      <Animated.View
+        style={[styles.glowContainer, { transform: [{ scale: pulseValue }] }]}
+      >
+        <View
+          style={[
+            styles.glowRing,
+            { width: 220, height: 220, opacity: 0.05, borderRadius: 110 },
+          ]}
+        />
+        <View
+          style={[
+            styles.glowRing,
+            { width: 180, height: 180, opacity: 0.1, borderRadius: 90 },
+          ]}
+        />
+        <View
+          style={[
+            styles.glowRing,
+            { width: 140, height: 140, opacity: 0.15, borderRadius: 70 },
+          ]}
+        />
       </Animated.View>
 
       {/* ── Logo & Title ──────────────────────────────────────────────────── */}
-      <Animated.View style={[styles.centerContent, { opacity: contentOpacity, transform: [{ scale: logoScale }] }]}>
+      <Animated.View
+        style={[
+          styles.centerContent,
+          { opacity: contentOpacity, transform: [{ scale: logoScale }] },
+        ]}
+      >
         <View style={styles.logoWrapper}>
           <Image
-            source={require('../../assets/images/logo-placeholder.png')}
+            source={require("../../assets/images/logo-placeholder.webp")}
             style={styles.logo}
             resizeMode="contain"
           />
         </View>
-        <AppText variant="h1" style={styles.title}>Livestock</AppText>
+        <AppText variant="h1" style={styles.title}>
+          Livestock
+        </AppText>
       </Animated.View>
 
       {/* ── Bottom Section ────────────────────────────────────────────────── */}
@@ -91,22 +122,24 @@ const SplashScreen = () => {
         <AppText variant="caption" style={styles.tagline}>
           OWN REAL ASSETS. GROW WITH TIME.
         </AppText>
-        
+
         <View style={styles.progressTrack}>
-          <Animated.View 
+          <Animated.View
             style={[
-              styles.progressBar, 
-              { 
+              styles.progressBar,
+              {
                 width: progressValue.interpolate({
                   inputRange: [0, 1],
-                  outputRange: ['0%', '100%']
-                }) 
-              }
-            ]} 
+                  outputRange: ["0%", "100%"],
+                }),
+              },
+            ]}
           />
         </View>
 
-        <AppText variant="caption" style={styles.version}>v1.0.2</AppText>
+        <AppText variant="caption" style={styles.version}>
+          v1.0.2
+        </AppText>
       </View>
     </LinearGradient>
   );
@@ -115,32 +148,32 @@ const SplashScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   glowContainer: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
   },
   glowRing: {
-    position: 'absolute',
+    position: "absolute",
     borderWidth: 1,
     borderColor: Colors.emerald,
   },
   centerContent: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   logoWrapper: {
     width: 110,
     height: 110,
     backgroundColor: Colors.surfaceElevated,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: Spacing.xl,
     borderWidth: 1,
-    borderColor: 'rgba(0, 255, 102, 0.1)',
+    borderColor: "rgba(0, 255, 102, 0.1)",
   },
   logo: {
     width: 60,
@@ -148,14 +181,14 @@ const styles = StyleSheet.create({
   },
   title: {
     letterSpacing: 2,
-    fontWeight: '700',
+    fontWeight: "700",
     color: Colors.white,
   },
   bottomSection: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 80,
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
     paddingHorizontal: Spacing.xl,
   },
   tagline: {
@@ -168,13 +201,13 @@ const styles = StyleSheet.create({
   progressTrack: {
     width: width * 0.5,
     height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: Spacing.md,
   },
   progressBar: {
-    height: '100%',
+    height: "100%",
     backgroundColor: Colors.emerald,
   },
   version: {

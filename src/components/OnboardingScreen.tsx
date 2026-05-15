@@ -1,21 +1,21 @@
-import React, { useState, useRef } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useRef, useState } from "react";
 import {
-  View,
-  StyleSheet,
+  Dimensions,
   FlatList,
   Image,
-  Dimensions,
-  TouchableOpacity,
-  NativeSyntheticEvent,
   NativeScrollEvent,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Colors, Spacing, Typography, Radius } from '../constants/theme';
-import { AppText, Button } from './ui';
-import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  NativeSyntheticEvent,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors, Radius, Spacing, Typography } from "../constants/theme";
+import { AppText, Button } from "./ui";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 interface OnboardingSlide {
   id: string;
@@ -30,22 +30,25 @@ interface OnboardingProps {
 
 const SLIDES: OnboardingSlide[] = [
   {
-    id: '1',
-    title: 'Own Livestock Digitally',
-    description: 'Buy goats, cows, fish, or poultry directly through the app and track your assets.',
-    image: require('../../assets/images/onboarding-1.png'),
+    id: "1",
+    title: "Own Livestock Digitally",
+    description:
+      "Buy goats, cows, fish, or poultry directly through the app and track your assets.",
+    image: require("../../assets/images/onboarding-1.webp"),
   },
   {
-    id: '2',
-    title: 'Real-Time Monitoring',
-    description: 'Track your assets\' growth and health with live updates and data-driven insights.',
-    image: require('../../assets/images/onboarding-2.png'),
+    id: "2",
+    title: "Real-Time Monitoring",
+    description:
+      "Track your assets' growth and health with live updates and data-driven insights.",
+    image: require("../../assets/images/onboarding-2.webp"),
   },
   {
-    id: '3',
-    title: 'Wealth Growth',
-    description: 'Watch your assets mature and earn significant returns as your livestock grows with time.',
-    image: require('../../assets/images/onboarding-3.png'),
+    id: "3",
+    title: "Wealth Growth",
+    description:
+      "Watch your assets mature and earn significant returns as your livestock grows with time.",
+    image: require("../../assets/images/onboarding-3.webp"),
   },
 ];
 
@@ -62,7 +65,10 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ onFinish }) => {
 
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true });
+      flatListRef.current?.scrollToIndex({
+        index: currentIndex + 1,
+        animated: true,
+      });
     } else {
       // Final slide: proceed
       onFinish();
@@ -78,7 +84,7 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ onFinish }) => {
       <View style={styles.imageContainer}>
         <Image source={item.image} style={styles.image} resizeMode="cover" />
       </View>
-      
+
       <View style={styles.textContainer}>
         <AppText variant="h1" align="center" style={styles.title}>
           {item.title}
@@ -95,7 +101,11 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ onFinish }) => {
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleSkip}>
-          <AppText variant="label" color={Colors.textSecondary} style={styles.skipText}>
+          <AppText
+            variant="label"
+            color={Colors.textSecondary}
+            style={styles.skipText}
+          >
             Skip
           </AppText>
         </TouchableOpacity>
@@ -131,11 +141,15 @@ const OnboardingScreen: React.FC<OnboardingProps> = ({ onFinish }) => {
 
         {/* Action Button */}
         <Button
-          label={currentIndex === SLIDES.length - 1 ? 'Get Started' : 'Next'}
+          label={currentIndex === SLIDES.length - 1 ? "Get Started" : "Next"}
           onPress={handleNext}
           rightIcon={
             currentIndex < SLIDES.length - 1 ? (
-              <Ionicons name="arrow-forward" size={20} color={Colors.textOnAccent} />
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color={Colors.textOnAccent}
+              />
             ) : undefined
           }
           fullWidth
@@ -153,7 +167,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   skipText: {
     fontSize: Typography.fontSize.sm,
@@ -161,7 +175,7 @@ const styles = StyleSheet.create({
   },
   slide: {
     width: width,
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
   },
@@ -169,19 +183,19 @@ const styles = StyleSheet.create({
     width: width - Spacing.xl * 2,
     height: height * 0.45,
     borderRadius: Radius.lg * 2,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: Colors.surface,
     marginBottom: Spacing.xxxl,
     // Add subtle glow
     borderWidth: 1,
-    borderColor: 'rgba(0, 255, 102, 0.05)',
+    borderColor: "rgba(0, 255, 102, 0.05)",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   textContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingHorizontal: Spacing.md,
   },
   title: {
@@ -196,10 +210,10 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxl,
-    alignItems: 'center',
+    alignItems: "center",
   },
   pagination: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: Spacing.xl,
     gap: Spacing.xs,
   },

@@ -188,7 +188,7 @@ const BatchDetailsScreen = () => {
         {/* ── Banner Image & Header ───────────────────────────────────────── */}
         <View style={styles.bannerContainer}>
           <Image
-            source={require("../../assets/images/boer-goat-banner.png")}
+            source={require("../../assets/images/boer-goat-banner.webp")}
             style={styles.bannerImage}
           />
           <LinearGradient

@@ -4,7 +4,7 @@
     "slug": "livestock",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo-placeholder.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "livestockfrontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

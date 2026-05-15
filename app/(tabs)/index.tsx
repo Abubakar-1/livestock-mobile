@@ -4,11 +4,11 @@ import React from "react";
 import {
   ActivityIndicator,
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
-  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
@@ -69,7 +69,9 @@ const TopBatchesList = () => {
   }
 
   const batches: any[] = response?.data || [];
-  const availableBatches = batches.filter((b) => b.status === "OPEN" || b.status === "ACTIVE").slice(0, 3);
+  const availableBatches = batches
+    .filter((b) => b.status === "OPEN" || b.status === "ACTIVE")
+    .slice(0, 3);
 
   if (availableBatches.length === 0) {
     return (
@@ -88,12 +90,17 @@ const TopBatchesList = () => {
         // Note: For real accuracy, the backend should provide sum of units.
         // Assuming 1 investment = X units, but for now using _count as a placeholder for activity.
         const investorCount = batch._count?.investments || 0;
-        const progress = batch.totalUnits > 0 
-          ? Math.min(100, Math.round((investorCount / batch.totalUnits) * 100)) 
-          : 0;
+        const progress =
+          batch.totalUnits > 0
+            ? Math.min(
+                100,
+                Math.round((investorCount / batch.totalUnits) * 100),
+              )
+            : 0;
 
         const cost =
-          parseFloat(batch.animalPrice || "0") + parseFloat(batch.serviceFee || "0");
+          parseFloat(batch.animalPrice || "0") +
+          parseFloat(batch.serviceFee || "0");
         const roi =
           batch.estimatedSalePriceLow &&
           batch.estimatedSalePriceHigh &&
@@ -133,8 +140,13 @@ const HomeScreen = () => {
   console.log("user", user);
   const fullName = user ? `${user.firstName} ${user.lastName}` : "User";
 
-  const { data: response, refetch: refetchPurchases, isFetching: isFetchingPurchases } = useGetPurchasesQuery();
-  const { refetch: refetchBatches, isFetching: isFetchingBatches } = useGetBatchesQuery();
+  const {
+    data: response,
+    refetch: refetchPurchases,
+    isFetching: isFetchingPurchases,
+  } = useGetPurchasesQuery();
+  const { refetch: refetchBatches, isFetching: isFetchingBatches } =
+    useGetBatchesQuery();
 
   const onRefresh = React.useCallback(() => {
     refetchPurchases();
@@ -142,7 +154,9 @@ const HomeScreen = () => {
   }, [refetchPurchases, refetchBatches]);
 
   const purchases = response?.data || [];
-  const confirmedPurchases = purchases.filter((p: any) => p.status === 'CONFIRMED');
+  const confirmedPurchases = purchases.filter(
+    (p: any) => p.status === "CONFIRMED",
+  );
 
   const totalValue = confirmedPurchases.reduce((sum: number, p: any) => {
     return (
@@ -170,7 +184,7 @@ const HomeScreen = () => {
         <View style={styles.userInfo}>
           <View style={styles.avatarWrapper}>
             <Image
-              source={require("../../assets/images/user-avatar.png")}
+              source={require("../../assets/images/user-avatar.webp")}
               style={styles.avatar}
             />
             <View style={styles.statusDot} />

@@ -206,7 +206,7 @@ const AssetDetailsScreen = () => {
         {/* ── Asset Card ────────────────────────────────────────────────── */}
         <View style={styles.assetCard}>
           <Image
-            source={require("../assets/images/boer-goat-banner.png")}
+            source={require("../assets/images/boer-goat-banner.webp")}
             style={styles.assetImage}
           />
           <View style={styles.assetInfo}>
