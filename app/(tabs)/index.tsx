@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import {
-  ActionButton,
   BatchCard,
   InsightCard,
   SummaryCard,
@@ -33,14 +32,28 @@ const healthColor: Record<string, string> = {
   CRITICAL: "#EF4444",
 };
 
-function durationMonths(start: string, end: string): string {
+function durationLabel(start: string, end: string): string {
   const s = new Date(start);
   const e = new Date(end);
   if (isNaN(s.getTime()) || isNaN(e.getTime())) return "0";
-  const months =
-    (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
-  return String(Math.max(1, months));
+  const days = Math.max(1, Math.ceil((e.getTime() - s.getTime()) / (1000 * 3600 * 24)));
+  if (days < 60) {
+    const weeks = Math.max(1, Math.round(days / 7));
+    return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
+  }
+  const months = Math.max(1, Math.round(days / 30));
+  return `${months} ${months === 1 ? "month" : "months"}`;
 }
+
+const unitCost = (batch: any) =>
+  parseFloat(batch?.animalPrice || "0") +
+  parseFloat(batch?.feedingFee || "0") +
+  parseFloat(batch?.medicationFee || "0");
+
+const currentUnitValue = (batch: any) =>
+  parseFloat(batch?.currentMarketValueLow || "0") > 0
+    ? parseFloat(batch?.currentMarketValueLow || "0")
+    : unitCost(batch);
 
 function fundedPercent(batch: any): number {
   const invested = batch._count?.investments
@@ -98,9 +111,7 @@ const TopBatchesList = () => {
               )
             : 0;
 
-        const cost =
-          parseFloat(batch.animalPrice || "0") +
-          parseFloat(batch.serviceFee || "0");
+        const cost = unitCost(batch);
         const roi =
           batch.estimatedSalePriceLow &&
           batch.estimatedSalePriceHigh &&
@@ -119,7 +130,7 @@ const TopBatchesList = () => {
             price={cost.toFixed(0)}
             estReturn={`${parseFloat(batch.estimatedSalePriceLow || "0").toFixed(0)} - ${parseFloat(batch.estimatedSalePriceHigh || "0").toFixed(0)}`}
             roi={roi}
-            duration={durationMonths(batch.startDate, batch.endDate)}
+            duration={durationLabel(batch.startDate, batch.endDate)}
             progress={progress}
             unitsLeft={Math.max(0, batch.totalUnits - investorCount)}
             status={batch.status === "OPEN" ? "Open" : "Active"}
@@ -162,16 +173,14 @@ const HomeScreen = () => {
     return (
       sum +
       p.units *
-        (parseFloat(p.batch?.animalPrice || "0") +
-          parseFloat(p.batch?.serviceFee || "0"))
+        currentUnitValue(p.batch)
     );
   }, 0);
 
   const unrealizedGains = confirmedPurchases.reduce((sum: number, p: any) => {
     const cost =
       p.units *
-      (parseFloat(p.batch?.animalPrice || "0") +
-        parseFloat(p.batch?.serviceFee || "0"));
+      currentUnitValue(p.batch);
     const estimatedEndValue =
       p.units * parseFloat(p.batch?.estimatedSalePriceLow || "0");
     return sum + Math.max(0, estimatedEndValue - cost);
@@ -225,26 +234,6 @@ const HomeScreen = () => {
           totalValue={totalValue}
           unrealizedGains={unrealizedGains}
         />
-
-        {/* ── Actions ───────────────────────────────────────────────────── */}
-        <View style={styles.actionsRow}>
-          <ActionButton label="Deposit" icon="add" onPress={() => {}} />
-          <ActionButton
-            label="Withdraw"
-            icon="wallet-outline"
-            onPress={() => {}}
-          />
-          <ActionButton
-            label="History"
-            icon="time-outline"
-            onPress={() => {}}
-          />
-          <ActionButton
-            label="Reports"
-            icon="bar-chart-outline"
-            onPress={() => {}}
-          />
-        </View>
 
         {/* ── Available Batches ─────────────────────────────────────────── */}
         <View style={styles.sectionHeader}>
@@ -343,11 +332,6 @@ const styles = StyleSheet.create({
   scrollBody: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: Spacing.xl,
   },
   sectionHeader: {
     flexDirection: "row",

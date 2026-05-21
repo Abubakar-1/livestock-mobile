@@ -24,6 +24,11 @@ import {
 
 const { width } = Dimensions.get("window");
 
+const unitCost = (batch: any) =>
+  parseFloat(batch?.animalPrice || "0") +
+  parseFloat(batch?.feedingFee || "0") +
+  parseFloat(batch?.medicationFee || "0");
+
 const AssetDetailsScreen = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -90,8 +95,7 @@ const AssetDetailsScreen = () => {
   const isCancelled = purchase.status === "CANCELLED";
   const isConfirmed = purchase.status === "CONFIRMED";
 
-  const costPerUnit =
-    parseFloat(batch.animalPrice) + parseFloat(batch.serviceFee);
+  const costPerUnit = unitCost(batch);
   const purchaseAmount = purchase.units * costPerUnit;
 
   const marketValueLow =

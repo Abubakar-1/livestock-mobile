@@ -38,6 +38,11 @@ function getPurchasedUnits(batch: any): number {
     : 0;
 }
 
+const unitCost = (batch: any) =>
+  parseFloat(batch?.animalPrice || "0") +
+  parseFloat(batch?.feedingFee || "0") +
+  parseFloat(batch?.medicationFee || "0");
+
 const BatchDetailsScreen = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -104,8 +109,7 @@ const BatchDetailsScreen = () => {
 
   const batch = response.data;
 
-  const marketValuePerUnit =
-    parseFloat(batch.animalPrice || "0") + parseFloat(batch.serviceFee || "0");
+  const marketValuePerUnit = unitCost(batch);
   const projectedPeakLow = parseFloat(batch.estimatedSalePriceLow || "0");
   const projectedPeakHigh = parseFloat(batch.estimatedSalePriceHigh || "0");
   const projectedPeakPerUnit = `${projectedPeakLow.toFixed(0)} - ${projectedPeakHigh.toFixed(0)}`;
@@ -454,6 +458,25 @@ const BatchDetailsScreen = () => {
               </AppText>
             </View>
 
+            <View style={styles.feeBreakdown}>
+              <View style={styles.feeRow}>
+                <AppText variant="caption" color={Colors.textSecondary}>
+                  Feeding Fee
+                </AppText>
+                <AppText variant="bodySmall" color={Colors.white} weight="700">
+                  ₦{Number(batch.feedingFee || 0).toLocaleString()}
+                </AppText>
+              </View>
+              <View style={styles.feeRow}>
+                <AppText variant="caption" color={Colors.textSecondary}>
+                  Medication Fee
+                </AppText>
+                <AppText variant="bodySmall" color={Colors.white} weight="700">
+                  ₦{Number(batch.medicationFee || 0).toLocaleString()}
+                </AppText>
+              </View>
+            </View>
+
             <View style={styles.valueItem}>
               <AppText variant="caption" color={Colors.emerald}>
                 Sell For (Projected)
@@ -613,6 +636,18 @@ const BatchDetailsScreen = () => {
                 <AppText color={Colors.textSecondary}>Price per Unit</AppText>
                 <AppText variant="body" weight="700">
                   ₦{marketValuePerUnit.toLocaleString()}
+                </AppText>
+              </View>
+              <View style={styles.summaryRow}>
+                <AppText color={Colors.textSecondary}>Feeding Fee</AppText>
+                <AppText variant="body" weight="700">
+                  ₦{Number(batch.feedingFee || 0).toLocaleString()}
+                </AppText>
+              </View>
+              <View style={styles.summaryRow}>
+                <AppText color={Colors.textSecondary}>Medication Fee</AppText>
+                <AppText variant="body" weight="700">
+                  ₦{Number(batch.medicationFee || 0).toLocaleString()}
                 </AppText>
               </View>
               <View style={[styles.summaryRow, styles.totalRow]}>
@@ -926,6 +961,17 @@ const styles = StyleSheet.create({
   },
   valueItem: {
     gap: 4,
+  },
+  feeBreakdown: {
+    backgroundColor: "rgba(255,255,255,0.03)",
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  feeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   chartValue: {
     fontSize: 26,

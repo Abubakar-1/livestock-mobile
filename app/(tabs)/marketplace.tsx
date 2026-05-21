@@ -37,15 +37,23 @@ const statusLabel: Record<string, string> = {
   COMING_SOON: 'Coming Soon',
 };
 
-// Calculate duration in months between two dates
-function durationMonths(start: string, end: string): string {
+function durationLabel(start: string, end: string): string {
   const s = new Date(start);
   const e = new Date(end);
   if (isNaN(s.getTime()) || isNaN(e.getTime())) return "0";
-  const months =
-    (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
-  return String(Math.max(1, months));
+  const days = Math.max(1, Math.ceil((e.getTime() - s.getTime()) / (1000 * 3600 * 24)));
+  if (days < 60) {
+    const weeks = Math.max(1, Math.round(days / 7));
+    return `${weeks} ${weeks === 1 ? "week" : "weeks"}`;
+  }
+  const months = Math.max(1, Math.round(days / 30));
+  return `${months} ${months === 1 ? "month" : "months"}`;
 }
+
+const unitCost = (batch: any) =>
+  parseFloat(batch?.animalPrice || "0") +
+  parseFloat(batch?.feedingFee || "0") +
+  parseFloat(batch?.medicationFee || "0");
 
 // Calculate a simple "funded" percentage based on units purchased vs totalUnits
 function fundedPercent(batch: any): number {
@@ -205,8 +213,7 @@ export default function MarketplaceScreen() {
                 ? Math.min(100, Math.round((investorCount / batch.totalUnits) * 100)) 
                 : 0;
 
-              const cost =
-                parseFloat(batch.animalPrice || "0") + parseFloat(batch.serviceFee || "0");
+              const cost = unitCost(batch);
               const roi =
                 batch.estimatedSalePriceLow && batch.estimatedSalePriceHigh && cost > 0
                   ? `${(((parseFloat(batch.estimatedSalePriceLow) - cost) / cost) * 100).toFixed(0)}% - ${(((parseFloat(batch.estimatedSalePriceHigh) - cost) / cost) * 100).toFixed(0)}%`
@@ -225,7 +232,7 @@ export default function MarketplaceScreen() {
                   price={cost.toFixed(0)}
                   estReturn={`${parseFloat(batch.estimatedSalePriceLow || '0').toFixed(0)} - ${parseFloat(batch.estimatedSalePriceHigh || '0').toFixed(0)}`}
                   roi={roi}
-                  duration={durationMonths(batch.startDate, batch.endDate)}
+                  duration={durationLabel(batch.startDate, batch.endDate)}
                   progress={progress}
                   unitsLeft={Math.max(0, batch.totalUnits - investorCount)}
                   status={statusLabel[batch.status] || batch.status}
@@ -249,8 +256,7 @@ export default function MarketplaceScreen() {
                     ? Math.min(100, Math.round((investorCount / batch.totalUnits) * 100)) 
                     : 0;
 
-                  const cost =
-                    parseFloat(batch.animalPrice || "0") + parseFloat(batch.serviceFee || "0");
+                  const cost = unitCost(batch);
                   const roi =
                     batch.estimatedSalePriceLow && batch.estimatedSalePriceHigh && cost > 0
                       ? `${(((parseFloat(batch.estimatedSalePriceLow) - cost) / cost) * 100).toFixed(0)}% - ${(((parseFloat(batch.estimatedSalePriceHigh) - cost) / cost) * 100).toFixed(0)}%`
@@ -264,7 +270,7 @@ export default function MarketplaceScreen() {
                       price={cost.toFixed(0)}
                       estReturn={`${parseFloat(batch.estimatedSalePriceLow || '0').toFixed(0)} - ${parseFloat(batch.estimatedSalePriceHigh || '0').toFixed(0)}`}
                       roi={roi}
-                      duration={durationMonths(batch.startDate, batch.endDate)}
+                      duration={durationLabel(batch.startDate, batch.endDate)}
                       progress={progress}
                       unitsLeft={Math.max(0, batch.totalUnits - investorCount)}
                       status={batch.status === 'FULL' ? 'Sold Out' : 'Closed'}

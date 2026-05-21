@@ -225,7 +225,7 @@ export const BatchCard = ({
               isClosed && { color: Colors.white },
             ]}
           >
-            {duration} Months
+            {duration}
           </AppText>
         </View>
       </View>

@@ -20,6 +20,16 @@ import { Colors, Radius, Spacing } from "../../src/constants/theme";
 import { ActivityIndicator } from "react-native";
 import { useGetPurchasesQuery } from "../../src/features/marketplace/marketplaceApi";
 
+const unitCost = (batch: any) =>
+  parseFloat(batch?.animalPrice || "0") +
+  parseFloat(batch?.feedingFee || "0") +
+  parseFloat(batch?.medicationFee || "0");
+
+const currentUnitValue = (batch: any) =>
+  parseFloat(batch?.currentMarketValueLow || "0") > 0
+    ? parseFloat(batch?.currentMarketValueLow || "0")
+    : unitCost(batch);
+
 export default function PortfolioScreen() {
   const router = useRouter();
   const {
@@ -60,19 +70,11 @@ export default function PortfolioScreen() {
 
   // Total value only includes confirmed assets
   const totalValue = confirmedAssets.reduce((sum: number, p: any) => {
-    return (
-      sum +
-      p.units *
-        (parseFloat(p.batch?.animalPrice || "0") +
-          parseFloat(p.batch?.serviceFee || "0"))
-    );
+    return sum + p.units * currentUnitValue(p.batch);
   }, 0);
 
   const unrealizedGains = confirmedAssets.reduce((sum: number, p: any) => {
-    const cost =
-      p.units *
-      (parseFloat(p.batch?.animalPrice || "0") +
-        parseFloat(p.batch?.serviceFee || "0"));
+    const cost = p.units * unitCost(p.batch);
     const estimatedEndValue =
       p.units * parseFloat(p.batch?.estimatedSalePriceLow || "0");
     return sum + Math.max(0, estimatedEndValue - cost);

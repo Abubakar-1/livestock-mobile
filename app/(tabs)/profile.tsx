@@ -34,6 +34,16 @@ import { RootState } from "../../src/store/store";
 
 const { width } = Dimensions.get("window");
 
+const unitCost = (batch: any) =>
+  parseFloat(batch?.animalPrice || "0") +
+  parseFloat(batch?.feedingFee || "0") +
+  parseFloat(batch?.medicationFee || "0");
+
+const currentUnitValue = (batch: any) =>
+  parseFloat(batch?.currentMarketValueLow || "0") > 0
+    ? parseFloat(batch?.currentMarketValueLow || "0")
+    : unitCost(batch);
+
 const SettingItem = ({
   icon,
   title,
@@ -100,9 +110,12 @@ export default function ProfileScreen() {
     setRefreshing(false);
   };
 
-  const totalInvested = purchases
+  const totalPortfolioValue = purchases
     .filter((p: any) => p.status === "CONFIRMED")
-    .reduce((sum: number, p: any) => sum + (parseFloat(p.totalAmount) || 0), 0);
+    .reduce(
+      (sum: number, p: any) => sum + (p.units || 0) * currentUnitValue(p.batch),
+      0,
+    );
 
   const activeAssetsCount = purchases.filter(
     (p: any) => p.status === "CONFIRMED",
@@ -277,7 +290,7 @@ export default function ProfileScreen() {
               <AppText variant="caption" color={Colors.textMuted}>
                 Portfolio Value
               </AppText>
-              <AppText variant="h2">₦{totalInvested.toLocaleString()}</AppText>
+              <AppText variant="h2">₦{totalPortfolioValue.toLocaleString()}</AppText>
             </View>
             <View style={styles.statCard}>
               <AppText variant="caption" color={Colors.textMuted}>
