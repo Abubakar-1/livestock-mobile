@@ -15,6 +15,7 @@ import { BatchCard } from '../../src/components/Dashboard';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useGetBatchesQuery, useGetAnimalTypesQuery } from '../../src/features/marketplace/marketplaceApi';
+import { getAvailableUnits, getFundedPercent } from '../../src/utils/batches';
 
 
 
@@ -55,16 +56,6 @@ const unitCost = (batch: any) =>
   parseFloat(batch?.feedingFee || "0") +
   parseFloat(batch?.medicationFee || "0");
 
-// Calculate a simple "funded" percentage based on units purchased vs totalUnits
-function fundedPercent(batch: any): number {
-  const invested = batch._count?.investments
-    ? batch.investments?.reduce((a: number, inv: any) => a + (inv.units || 0), 0)
-    : 0;
-  return batch.totalUnits > 0
-    ? Math.min(100, Math.round((invested / batch.totalUnits) * 100))
-    : 0;
-}
-
 export default function MarketplaceScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,15 +63,15 @@ export default function MarketplaceScreen() {
 
   const { data: batchesResponse, isLoading: isLoadingBatches, refetch: refetchBatches, isFetching: isFetchingBatches } = useGetBatchesQuery();
   const { data: animalTypesResponse, refetch: refetchTypes, isFetching: isFetchingTypes } = useGetAnimalTypesQuery();
-  
+
   const onRefresh = React.useCallback(() => {
     refetchBatches();
     refetchTypes();
   }, [refetchBatches, refetchTypes]);
-  
+
   const batches: any[] = batchesResponse?.data || [];
   const animalTypes: any[] = animalTypesResponse?.data || [];
-  
+
   // Use all animal types from the DB
   const dynamicCategories = ['All', ...animalTypes.map(type => type.name).filter(Boolean)];
 
@@ -165,7 +156,7 @@ export default function MarketplaceScreen() {
       </View>
 
       {/* ── Batch List ──────────────────────────────────────────────────── */}
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -208,10 +199,7 @@ export default function MarketplaceScreen() {
         ) : (
           <>
             {available.map((batch) => {
-              const investorCount = batch._count?.investments || 0;
-              const progress = batch.totalUnits > 0 
-                ? Math.min(100, Math.round((investorCount / batch.totalUnits) * 100)) 
-                : 0;
+              const progress = getFundedPercent(batch);
 
               const cost = unitCost(batch);
               const roi =
@@ -220,7 +208,7 @@ export default function MarketplaceScreen() {
                   : 'N/A';
               const sColor = healthColor[batch.healthStatus] || Colors.emerald;
               const location = batch.batchFarms?.[0]?.farm?.location || 'Multiple Farms';
-              const campaignEnd = batch.campaignEndDate 
+              const campaignEnd = batch.campaignEndDate
                 ? new Date(batch.campaignEndDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
                 : null;
 
@@ -234,7 +222,7 @@ export default function MarketplaceScreen() {
                   roi={roi}
                   duration={durationLabel(batch.startDate, batch.endDate)}
                   progress={progress}
-                  unitsLeft={Math.max(0, batch.totalUnits - investorCount)}
+                  unitsLeft={getAvailableUnits(batch)}
                   status={statusLabel[batch.status] || batch.status}
                   statusColor={batch.status === 'COMING_SOON' ? Colors.gold : sColor}
                   progressColor={batch.status === 'COMING_SOON' ? Colors.gold : sColor}
@@ -251,17 +239,14 @@ export default function MarketplaceScreen() {
                   Closed Batches
                 </AppText>
                 {closed.map((batch) => {
-                  const investorCount = batch._count?.investments || 0;
-                  const progress = batch.totalUnits > 0 
-                    ? Math.min(100, Math.round((investorCount / batch.totalUnits) * 100)) 
-                    : 0;
+                  const progress = getFundedPercent(batch);
 
                   const cost = unitCost(batch);
                   const roi =
                     batch.estimatedSalePriceLow && batch.estimatedSalePriceHigh && cost > 0
                       ? `${(((parseFloat(batch.estimatedSalePriceLow) - cost) / cost) * 100).toFixed(0)}% - ${(((parseFloat(batch.estimatedSalePriceHigh) - cost) / cost) * 100).toFixed(0)}%`
                       : 'N/A';
-                  
+
                   return (
                     <BatchCard
                       key={batch.id}
@@ -272,7 +257,7 @@ export default function MarketplaceScreen() {
                       roi={roi}
                       duration={durationLabel(batch.startDate, batch.endDate)}
                       progress={progress}
-                      unitsLeft={Math.max(0, batch.totalUnits - investorCount)}
+                      unitsLeft={getAvailableUnits(batch)}
                       status={batch.status === 'FULL' ? 'Sold Out' : 'Closed'}
                       statusColor={Colors.textMuted}
                       progressColor={Colors.textMuted}

@@ -25,18 +25,9 @@ import {
   useGetBatchByIdQuery,
   usePurchaseAssetMutation,
 } from "../../src/features/marketplace/marketplaceApi";
+import { getAvailableUnits } from "../../src/utils/batches";
 
 const { width } = Dimensions.get("window");
-
-// Calculate a simple "funded" percentage
-function getPurchasedUnits(batch: any): number {
-  return batch?._count?.investments
-    ? batch.investments?.reduce(
-        (a: number, inv: any) => a + (inv.units || 0),
-        0,
-      )
-    : 0;
-}
 
 const unitCost = (batch: any) =>
   parseFloat(batch?.animalPrice || "0") +
@@ -109,6 +100,9 @@ const BatchDetailsScreen = () => {
 
   const batch = response.data;
 
+  const animalPricePerUnit = Number(batch.animalPrice || 0);
+  const feedingFeePerUnit = Number(batch.feedingFee || 0);
+  const medicationFeePerUnit = Number(batch.medicationFee || 0);
   const marketValuePerUnit = unitCost(batch);
   const projectedPeakLow = parseFloat(batch.estimatedSalePriceLow || "0");
   const projectedPeakHigh = parseFloat(batch.estimatedSalePriceHigh || "0");
@@ -125,24 +119,26 @@ const BatchDetailsScreen = () => {
       ? `₦${currentMarketValueLow.toLocaleString()} - ₦${currentMarketValueHigh.toLocaleString()}`
       : `₦${marketValuePerUnit.toLocaleString()}`;
 
+  const animalPriceTotal = units * animalPricePerUnit;
+  const feedingFeeTotal = units * feedingFeePerUnit;
+  const medicationFeeTotal = units * medicationFeePerUnit;
   const totalAssetValue = units * marketValuePerUnit;
 
-  const purchasedUnits = getPurchasedUnits(batch);
-  const unitsLeft = Math.max(0, batch.totalUnits - purchasedUnits);
+  const unitsLeft = getAvailableUnits(batch);
 
   const roiLow =
     projectedPeakLow > 0 && marketValuePerUnit > 0
       ? (
-          ((projectedPeakLow - marketValuePerUnit) / marketValuePerUnit) *
-          100
-        ).toFixed(0)
+        ((projectedPeakLow - marketValuePerUnit) / marketValuePerUnit) *
+        100
+      ).toFixed(0)
       : "0";
   const roiHigh =
     projectedPeakHigh > 0 && marketValuePerUnit > 0
       ? (
-          ((projectedPeakHigh - marketValuePerUnit) / marketValuePerUnit) *
-          100
-        ).toFixed(0)
+        ((projectedPeakHigh - marketValuePerUnit) / marketValuePerUnit) *
+        100
+      ).toFixed(0)
       : "0";
   const roi = `${roiLow}% - ${roiHigh}%`;
 
@@ -632,28 +628,43 @@ const BatchDetailsScreen = () => {
                   {units}
                 </AppText>
               </View>
+
               <View style={styles.summaryRow}>
-                <AppText color={Colors.textSecondary}>Price per Unit</AppText>
-                <AppText variant="body" weight="700">
+                <AppText color={Colors.textSecondary}>Total Price per Unit</AppText>
+                <AppText variant="body" weight="700" style={styles.summaryFormula}>
                   ₦{marketValuePerUnit.toLocaleString()}
+                </AppText>
+              </View>
+
+              <View style={styles.summaryRow}>
+                <AppText color={Colors.textSecondary}>Animal Price</AppText>
+                <AppText variant="body" weight="700" style={styles.summaryFormula}>
+                  {`${units} x ₦${animalPricePerUnit.toLocaleString()} = ₦${animalPriceTotal.toLocaleString()}`}
                 </AppText>
               </View>
               <View style={styles.summaryRow}>
                 <AppText color={Colors.textSecondary}>Feeding Fee</AppText>
-                <AppText variant="body" weight="700">
-                  ₦{Number(batch.feedingFee || 0).toLocaleString()}
+                <AppText variant="body" weight="700" style={styles.summaryFormula}>
+                  {`${units} x ₦${feedingFeePerUnit.toLocaleString()} = ₦${feedingFeeTotal.toLocaleString()}`}
                 </AppText>
               </View>
               <View style={styles.summaryRow}>
                 <AppText color={Colors.textSecondary}>Medication Fee</AppText>
-                <AppText variant="body" weight="700">
-                  ₦{Number(batch.medicationFee || 0).toLocaleString()}
+                <AppText variant="body" weight="700" style={styles.summaryFormula}>
+                  {`${units} x ₦${medicationFeePerUnit.toLocaleString()} = ₦${medicationFeeTotal.toLocaleString()}`}
                 </AppText>
               </View>
+
               <View style={[styles.summaryRow, styles.totalRow]}>
                 <AppText variant="h3">Total Amount</AppText>
-                <AppText variant="h3" color={Colors.emerald}>
-                  ₦{totalAssetValue.toLocaleString()}
+                <AppText
+                  variant="h3"
+                  color={Colors.emerald}
+                  style={styles.summaryFormula}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {`₦${totalAssetValue.toLocaleString()}`}
                 </AppText>
               </View>
             </View>
@@ -1074,6 +1085,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: Spacing.md,
+  },
+  summaryFormula: {
+    flex: 1,
+    textAlign: "right",
   },
   totalRow: {
     marginTop: Spacing.md,

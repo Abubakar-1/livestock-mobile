@@ -45,12 +45,22 @@ const AssetDetailsScreen = () => {
   const allPurchases = allPurchasesResponse?.data || [];
   const bankDetails = bankResponse?.data;
 
-  const totalUnits = React.useMemo(() => {
-    if (!batch) return 0;
+  const confirmedBatchPurchases = React.useMemo(() => {
+    if (!batch) return [];
     return allPurchases
       .filter((p: any) => p.batchId === batch.id && p.status === "CONFIRMED")
-      .reduce((sum: number, p: any) => sum + p.units, 0);
+      .sort(
+        (a: any, b: any) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
   }, [allPurchases, batch]);
+
+  const assetUnits = React.useMemo(() => {
+    return confirmedBatchPurchases.reduce(
+      (sum: number, p: any) => sum + Number(p.units || 0),
+      0,
+    );
+  }, [confirmedBatchPurchases]);
 
   const handleCancel = () => {
     Alert.alert(
@@ -93,17 +103,14 @@ const AssetDetailsScreen = () => {
 
   const isPending = purchase.status === "PENDING";
   const isCancelled = purchase.status === "CANCELLED";
-  const isConfirmed = purchase.status === "CONFIRMED";
+  const hasConfirmedAsset = assetUnits > 0;
 
   const costPerUnit = unitCost(batch);
-  const purchaseAmount = purchase.units * costPerUnit;
+  const transferAmount = purchase.units * costPerUnit;
+  const assetValue = assetUnits * costPerUnit;
 
-  const marketValueLow =
-    (isConfirmed ? totalUnits : purchase.units) *
-    parseFloat(batch.estimatedSalePriceLow);
-  const marketValueHigh =
-    (isConfirmed ? totalUnits : purchase.units) *
-    parseFloat(batch.estimatedSalePriceHigh);
+  const marketValueLow = assetUnits * parseFloat(batch.estimatedSalePriceLow);
+  const marketValueHigh = assetUnits * parseFloat(batch.estimatedSalePriceHigh);
   const marketValueRange = `${marketValueLow.toLocaleString()} - ${marketValueHigh.toLocaleString()}`;
 
   const currentValLow = parseFloat(String(batch.currentMarketValueLow || "0"));
@@ -112,7 +119,12 @@ const AssetDetailsScreen = () => {
   );
   const currentMarketValueRange =
     currentValLow > 0
-      ? `${(currentValLow * (isConfirmed ? totalUnits : purchase.units)).toLocaleString()} - ${(currentValHigh * (isConfirmed ? totalUnits : purchase.units)).toLocaleString()}`
+      ? `${currentValLow.toLocaleString()} - ${currentValHigh.toLocaleString()}`
+      : null;
+
+  const firstConfirmedDate =
+    confirmedBatchPurchases.length > 0
+      ? new Date(confirmedBatchPurchases[0].createdAt)
       : null;
 
   const startDate = new Date(batch.startDate);
@@ -149,6 +161,46 @@ const AssetDetailsScreen = () => {
     healthColor[batch.healthStatus as keyof typeof healthColor] ||
     Colors.emerald;
 
+  const assetStatusLabel = hasConfirmedAsset
+    ? "ASSET ACTIVE"
+    : isPending
+      ? "PENDING TRANSFER"
+      : isCancelled
+        ? "NO CONFIRMED ASSET"
+        : "AWAITING CONFIRMATION";
+  const assetStatusColor = hasConfirmedAsset
+    ? Colors.emerald
+    : isCancelled
+      ? "#EF4444"
+      : "#F59E0B";
+
+  const assetPayoutAmount = confirmedBatchPurchases.reduce(
+    (sum: number, p: any) => sum + Number(p.payoutAmount || 0),
+    0,
+  );
+  const estimatedAssetPayout = batch.finalSalePrice
+    ? assetUnits * Number(batch.finalSalePrice)
+    : 0;
+  const displayedAssetPayout = assetPayoutAmount || estimatedAssetPayout;
+  const paidBatchPurchases = confirmedBatchPurchases.filter(
+    (p: any) => p.payoutStatus === "PAID",
+  );
+  const payoutStatus =
+    assetUnits < 1
+      ? "NO CONFIRMED UNITS"
+      : paidBatchPurchases.length === confirmedBatchPurchases.length
+        ? "PAID"
+        : confirmedBatchPurchases.some((p: any) => p.payoutStatus === "PENDING")
+          ? "PENDING"
+          : "AWAITING FINAL PRICE";
+  const latestPaidAt = paidBatchPurchases
+    .map((p: any) => p.paidAt)
+    .filter(Boolean)
+    .sort(
+      (a: string, b: string) =>
+        new Date(b).getTime() - new Date(a).getTime(),
+    )[0];
+
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -161,7 +213,7 @@ const AssetDetailsScreen = () => {
         >
           <Ionicons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
-        <AppText variant="h3">Order Details</AppText>
+        <AppText variant="h3">Asset Details</AppText>
         <View style={styles.headerBtn} />
       </View>
 
@@ -173,37 +225,33 @@ const AssetDetailsScreen = () => {
         <View
           style={[
             styles.statusBanner,
-            isPending && styles.statusPending,
+            !hasConfirmedAsset && isPending && styles.statusPending,
             isCancelled && styles.statusCancelled,
-            isConfirmed && styles.statusConfirmed,
+            hasConfirmedAsset && styles.statusConfirmed,
           ]}
         >
           <Ionicons
             name={
-              isPending
+              hasConfirmedAsset
+                ? "checkmark-circle"
+                : isPending
                 ? "time"
                 : isCancelled
                   ? "close-circle"
                   : "checkmark-circle"
             }
             size={20}
-            color={
-              isPending ? "#F59E0B" : isCancelled ? "#EF4444" : Colors.emerald
-            }
+            color={assetStatusColor}
           />
           <AppText
             style={[
               styles.statusText,
               {
-                color: isPending
-                  ? "#F59E0B"
-                  : isCancelled
-                    ? "#EF4444"
-                    : Colors.emerald,
+                color: assetStatusColor,
               },
             ]}
           >
-            STATUS: {purchase.status}
+            STATUS: {assetStatusLabel}
           </AppText>
         </View>
 
@@ -224,8 +272,8 @@ const AssetDetailsScreen = () => {
               {"\n"}Batch #{batch.id.substring(0, 4).toUpperCase()}
             </AppText>
             <AppText variant="caption" color={Colors.textSecondary}>
-              Order Date:{" "}
-              {new Date(purchase.createdAt).toLocaleDateString(undefined, {
+              {firstConfirmedDate ? "Asset Since" : "Batch Start"}:{" "}
+              {(firstConfirmedDate || new Date(batch.startDate)).toLocaleDateString(undefined, {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
@@ -246,8 +294,7 @@ const AssetDetailsScreen = () => {
                 color={Colors.textSecondary}
                 style={{ marginBottom: 12 }}
               >
-                Please transfer the total amount to the account below to confirm
-                your purchase.
+                Please transfer the amount below to confirm these units.
               </AppText>
 
               <View style={styles.bankDetailRow}>
@@ -284,10 +331,10 @@ const AssetDetailsScreen = () => {
                 ]}
               >
                 <AppText variant="caption" color={Colors.white}>
-                  TOTAL AMOUNT
+                  TRANSFER AMOUNT
                 </AppText>
                 <AppText variant="h2" color={Colors.emerald}>
-                  ₦{purchaseAmount.toLocaleString()}
+                  ₦{transferAmount.toLocaleString()}
                 </AppText>
               </View>
             </View>
@@ -303,8 +350,8 @@ const AssetDetailsScreen = () => {
           </View>
         )}
 
-        {/* ── Growth Stage (Only for Confirmed) ─────────────────────────── */}
-        {isConfirmed && (
+        {/* ── Growth Stage (Only for Owned Assets) ──────────────────────── */}
+        {hasConfirmedAsset && (
           <View style={styles.section}>
             <AppText variant="h3" style={styles.sectionTitle}>
               Maturity Progress
@@ -328,7 +375,7 @@ const AssetDetailsScreen = () => {
 
               <View style={styles.progressBarBg}>
                 <LinearGradient
-                  colors={[Colors.emerald, "#00FFCC"]}
+                  colors={[Colors.emerald, "#9DB8FF"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={[
@@ -380,15 +427,15 @@ const AssetDetailsScreen = () => {
 
           <View style={styles.card}>
             <View style={styles.valueHeaderRow}>
-              <View style={{ flex: 1 }}>
+              <View style={styles.valueMetricRow}>
                 <AppText variant="caption" style={styles.valueLabel}>
-                  ORDER VALUE
+                  ASSET VALUE
                 </AppText>
                 <AppText variant="h2" style={styles.valueText}>
-                  ₦{purchaseAmount.toLocaleString()}
+                  ₦{assetValue.toLocaleString()}
                 </AppText>
               </View>
-              <View style={{ alignItems: "flex-end", flex: 1, marginLeft: 8 }}>
+              <View style={styles.valueMetricRow}>
                 <AppText variant="caption" style={styles.valueLabel}>
                   EST. MATURITY VALUE
                 </AppText>
@@ -410,13 +457,13 @@ const AssetDetailsScreen = () => {
                 end={{ x: 1, y: 0 }}
                 style={[
                   styles.rangeBarFill,
-                  { width: isConfirmed ? `${progressPercent}%` : "0%" },
+                  { width: hasConfirmedAsset ? `${progressPercent}%` : "0%" },
                 ]}
               />
             </View>
             <View style={styles.chartXLabels}>
               <AppText variant="caption" color={Colors.white}>
-                Purchase
+                Asset Cost
               </AppText>
               <AppText variant="caption" color={Colors.white}>
                 Target Maturity
@@ -428,8 +475,16 @@ const AssetDetailsScreen = () => {
                 <View style={styles.divider} />
                 <View style={styles.currentValRow}>
                   <View style={{ flex: 1 }}>
+                    <View style={styles.buyPriceInline}>
+                      <AppText variant="caption" color={Colors.white}>
+                        BUY PRICE PER UNIT
+                      </AppText>
+                      <AppText variant="h3" color={Colors.white}>
+                        ₦{costPerUnit.toLocaleString()}
+                      </AppText>
+                    </View>
                     <AppText variant="caption" color={Colors.white}>
-                      CURRENT MARKET VALUE
+                      CURRENT MARKET VALUE PER UNIT
                     </AppText>
                     <AppText variant="h3" color={Colors.white}>
                       ₦{currentMarketValueRange}
@@ -451,8 +506,8 @@ const AssetDetailsScreen = () => {
           </View>
         </View>
 
-        {/* ── Payout Summary (Only for Completed Batches) ─────────────────── */}
-        {batch.status === "COMPLETED" && (
+        {/* ── Payout Summary (Only for Completed Owned Assets) ───────────── */}
+        {batch.status === "COMPLETED" && hasConfirmedAsset && (
           <View style={styles.section}>
             <AppText variant="h3" style={styles.sectionTitle}>
               Payout Summary
@@ -479,7 +534,7 @@ const AssetDetailsScreen = () => {
                       : "Pending..."}
                   </AppText>
                 </View>
-                {purchase.payoutStatus === "PAID" && (
+                {payoutStatus === "PAID" && (
                   <View style={styles.paidStamp}>
                     <Ionicons
                       name="checkmark-done-circle"
@@ -507,15 +562,15 @@ const AssetDetailsScreen = () => {
                   <AppText
                     variant="h1"
                     color={
-                      purchase.payoutStatus === "PAID"
+                      payoutStatus === "PAID"
                         ? Colors.emerald
                         : Colors.white
                     }
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
-                    {purchase.payoutAmount
-                      ? `₦${Number(purchase.payoutAmount).toLocaleString()}`
+                    {displayedAssetPayout
+                      ? `₦${Number(displayedAssetPayout).toLocaleString()}`
                       : "Calculating..."}
                   </AppText>
                 </View>
@@ -528,8 +583,8 @@ const AssetDetailsScreen = () => {
                       styles.statusTag,
                       {
                         backgroundColor:
-                          purchase.payoutStatus === "PAID"
-                            ? "rgba(0, 255, 102, 0.1)"
+                          payoutStatus === "PAID"
+                            ? "rgba(91, 140, 255, 0.1)"
                             : "rgba(245, 158, 11, 0.1)",
                       },
                     ]}
@@ -537,25 +592,25 @@ const AssetDetailsScreen = () => {
                     <AppText
                       variant="label"
                       color={
-                        purchase.payoutStatus === "PAID"
+                        payoutStatus === "PAID"
                           ? Colors.emerald
                           : "#F59E0B"
                       }
                     >
-                      {purchase.payoutStatus || "AWAITING FINAL PRICE"}
+                      {payoutStatus}
                     </AppText>
                   </View>
                 </View>
               </View>
 
-              {purchase.paidAt && (
+              {latestPaidAt && (
                 <AppText
                   variant="caption"
                   color={Colors.textMuted}
                   style={{ marginTop: 12, fontStyle: "italic" }}
                 >
                   Disbursed on{" "}
-                  {new Date(purchase.paidAt).toLocaleDateString(undefined, {
+                  {new Date(latestPaidAt).toLocaleDateString(undefined, {
                     month: "long",
                     day: "numeric",
                     year: "numeric",
@@ -576,10 +631,10 @@ const AssetDetailsScreen = () => {
               </AppText>
             </View>
             <AppText variant="h3" style={styles.statValue}>
-              {isConfirmed ? totalUnits : purchase.units} Units
+              {assetUnits} Units
             </AppText>
             <AppText variant="caption" color={Colors.textMuted}>
-              {isConfirmed ? "Consolidated" : "Single Order"}
+              Confirmed ownership
             </AppText>
           </View>
 
@@ -646,7 +701,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(239, 68, 68, 0.1)",
   },
   statusConfirmed: {
-    backgroundColor: "rgba(0, 255, 102, 0.1)",
+    backgroundColor: "rgba(91, 140, 255, 0.1)",
   },
   statusText: {
     fontSize: 12,
@@ -674,7 +729,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   badge: {
-    backgroundColor: "rgba(0, 255, 102, 0.15)",
+    backgroundColor: "rgba(91, 140, 255, 0.15)",
     alignSelf: "flex-start",
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -749,9 +804,11 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   valueHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    gap: Spacing.md,
     marginBottom: Spacing.xl,
+  },
+  valueMetricRow: {
+    width: "100%",
   },
   valueLabel: {
     letterSpacing: 1,
@@ -803,6 +860,9 @@ const styles = StyleSheet.create({
   currentValContainer: {
     marginTop: Spacing.xl,
   },
+  buyPriceInline: {
+    marginBottom: Spacing.md,
+  },
   divider: {
     height: 1,
     backgroundColor: "rgba(255,255,255,0.05)",
@@ -828,7 +888,7 @@ const styles = StyleSheet.create({
   paidStamp: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0, 255, 102, 0.1)",
+    backgroundColor: "rgba(91, 140, 255, 0.1)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -842,7 +902,7 @@ const styles = StyleSheet.create({
   liveBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(0, 255, 102, 0.1)",
+    backgroundColor: "rgba(91, 140, 255, 0.1)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,

@@ -52,8 +52,8 @@ const SettingItem = ({
   showChevron = false,
   showToggle = false,
   toggleValue = false,
-  onToggle = () => {},
-  onPress = () => {},
+  onToggle = () => { },
+  onPress = () => { },
 }: any) => (
   <TouchableOpacity
     style={styles.settingItem}

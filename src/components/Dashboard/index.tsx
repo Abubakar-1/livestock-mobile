@@ -31,73 +31,110 @@ export const ActionButton = ({
  */
 export const SummaryCard = ({
   totalValue = 0,
-  unrealizedGains = 0,
+  maturityValueLow = 0,
+  maturityValueHigh = 0,
+  profitLossLow = 0,
+  profitLossHigh = 0,
 }: {
   totalValue?: number;
-  unrealizedGains?: number;
-}) => (
-  <View style={styles.summaryCard}>
-    <View style={styles.summaryHeader}>
-      <AppText variant="bodySmall" color={Colors.textSecondary}>
-        Total Assets Value
+  maturityValueLow?: number;
+  maturityValueHigh?: number;
+  profitLossLow?: number;
+  profitLossHigh?: number;
+}) => {
+  const formatCurrency = (value: number) => `₦${value.toLocaleString()}`;
+  const formatCurrencyRange = (low: number, high: number) =>
+    low === high
+      ? formatCurrency(low)
+      : `${formatCurrency(low)} - ${formatCurrency(high)}`;
+  const formatSignedCurrency = (value: number) =>
+    `${value >= 0 ? "+" : "-"}₦${Math.abs(value).toLocaleString()}`;
+  const formatSignedCurrencyRange = (low: number, high: number) =>
+    low === high
+      ? formatSignedCurrency(low)
+      : `${formatSignedCurrency(low)} to ${formatSignedCurrency(high)}`;
+  const formatSignedPercent = (value: number) =>
+    `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+
+  const profitLossPercentLow =
+    totalValue > 0 ? (profitLossLow / totalValue) * 100 : 0;
+  const profitLossPercentHigh =
+    totalValue > 0 ? (profitLossHigh / totalValue) * 100 : 0;
+  const trendColor = profitLossHigh < 0 ? "#EF4444" : Colors.emerald;
+  const trendIcon = profitLossHigh < 0 ? "trending-down" : "trending-up";
+  const trendLabel =
+    profitLossPercentLow === profitLossPercentHigh
+      ? formatSignedPercent(profitLossPercentLow)
+      : `${formatSignedPercent(profitLossPercentLow)} - ${formatSignedPercent(
+        profitLossPercentHigh,
+      )}`;
+
+  return (
+    <View style={styles.summaryCard}>
+      <View style={styles.summaryHeader}>
+        <AppText variant="bodySmall" color={Colors.textSecondary}>
+          Total Assets Value
+        </AppText>
+        <View style={styles.trendBadge}>
+          <Ionicons name="trending-up" size={14} color={Colors.emerald} />
+          <AppText
+            variant="caption"
+            color={Colors.emerald}
+            style={{ marginLeft: 4, fontWeight: "700" }}
+          >
+            {trendLabel}
+          </AppText>
+        </View>
+      </View>
+
+      <AppText variant="h1" style={styles.totalAmount}>
+        {formatCurrency(totalValue)}
       </AppText>
-      <View style={styles.trendBadge}>
-        <Ionicons name="trending-up" size={14} color={Colors.emerald} />
-        <AppText
-          variant="caption"
-          color={Colors.emerald}
-          style={{ marginLeft: 4, fontWeight: "700" }}
+
+      <View style={styles.statsList}>
+        <View style={styles.statsListItem}>
+          <AppText variant="caption" color={Colors.textSecondary}>
+            ESTIMATED MATURITY VALUE
+          </AppText>
+          <AppText
+            variant="h3"
+            color={Colors.white}
+            style={{ fontWeight: "700", marginTop: 2 }}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {formatCurrencyRange(maturityValueLow, maturityValueHigh)}
+          </AppText>
+        </View>
+
+        <View
+          style={[
+            styles.statsListItem,
+            {
+              borderTopWidth: 1,
+              borderTopColor: "rgba(255,255,255,0.05)",
+              paddingTop: 12,
+              marginTop: 12,
+            },
+          ]}
         >
-          {totalValue > 0
-            ? `+${((unrealizedGains / totalValue) * 100).toFixed(2)}%`
-            : "0.00%"}
-        </AppText>
+          <AppText variant="caption" color={Colors.textSecondary}>
+            TOTAL PROFIT/LOSS
+          </AppText>
+          <AppText
+            variant="h3"
+            color={profitLossHigh < 0 ? "#EF4444" : Colors.emerald}
+            style={{ fontWeight: "700", marginTop: 2 }}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {formatSignedCurrencyRange(profitLossLow, profitLossHigh)}
+          </AppText>
+        </View>
       </View>
     </View>
-
-    <AppText variant="h1" style={styles.totalAmount}>
-      ₦{totalValue.toLocaleString()}
-    </AppText>
-
-    <View style={styles.statsList}>
-      <View style={styles.statsListItem}>
-        <AppText variant="caption" color={Colors.textSecondary}>
-          ESTIMATED MATURITY VALUE
-        </AppText>
-        <AppText
-          variant="h3"
-          color={Colors.white}
-          style={{ fontWeight: "700", marginTop: 2 }}
-        >
-          ₦{(totalValue + unrealizedGains).toLocaleString()}
-        </AppText>
-      </View>
-
-      <View
-        style={[
-          styles.statsListItem,
-          {
-            borderTopWidth: 1,
-            borderTopColor: "rgba(255,255,255,0.05)",
-            paddingTop: 12,
-            marginTop: 12,
-          },
-        ]}
-      >
-        <AppText variant="caption" color={Colors.textSecondary}>
-          TOTAL PROFIT/LOSS
-        </AppText>
-        <AppText
-          variant="h3"
-          color={Colors.emerald}
-          style={{ fontWeight: "700", marginTop: 2 }}
-        >
-          +₦{unrealizedGains.toLocaleString()}
-        </AppText>
-      </View>
-    </View>
-  </View>
-);
+  );
+};
 
 /**
  * Batch Card
@@ -143,7 +180,7 @@ export const BatchCard = ({
               ? Colors.textMuted
               : statusColor === Colors.emerald
                 ? Colors.emerald
-                : "#FFB800"
+                : Colors.gold
           }
         />
       </View>
@@ -185,7 +222,7 @@ export const BatchCard = ({
         <View
           style={[
             styles.statusBadge,
-            { backgroundColor: "rgba(0, 0, 0, 0.2)" },
+            { backgroundColor: Colors.surfaceElevated },
           ]}
         >
           <AppText
@@ -243,9 +280,9 @@ export const BatchCard = ({
             ₦
             {estReturn
               ? estReturn
-                  .split(" - ")
-                  .map((v: string) => Number(v).toLocaleString())
-                  .join(" - ")
+                .split(" - ")
+                .map((v: string) => Number(v).toLocaleString())
+                .join(" - ")
               : "---"}
           </AppText>
           {!isClosed && (

@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: Spacing.xl,
     borderWidth: 1,
-    borderColor: "rgba(0, 255, 102, 0.1)",
+    borderColor: "rgba(91, 140, 255, 0.1)",
   },
   logo: {
     width: 60,

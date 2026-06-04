@@ -12,23 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   AssetCard,
   PortfolioValueCard,
-  UnrealizedGainsCard,
 } from "../../src/components/Portfolio";
 import { AppText } from "../../src/components/ui";
 import { Colors, Radius, Spacing } from "../../src/constants/theme";
 
 import { ActivityIndicator } from "react-native";
 import { useGetPurchasesQuery } from "../../src/features/marketplace/marketplaceApi";
-
-const unitCost = (batch: any) =>
-  parseFloat(batch?.animalPrice || "0") +
-  parseFloat(batch?.feedingFee || "0") +
-  parseFloat(batch?.medicationFee || "0");
-
-const currentUnitValue = (batch: any) =>
-  parseFloat(batch?.currentMarketValueLow || "0") > 0
-    ? parseFloat(batch?.currentMarketValueLow || "0")
-    : unitCost(batch);
 
 export default function PortfolioScreen() {
   const router = useRouter();
@@ -68,16 +57,9 @@ export default function PortfolioScreen() {
     return Array.from(map.values());
   }, [allPurchases]);
 
-  // Total value only includes confirmed assets
+  // Total value is the cost basis of confirmed assets.
   const totalValue = confirmedAssets.reduce((sum: number, p: any) => {
-    return sum + p.units * currentUnitValue(p.batch);
-  }, 0);
-
-  const unrealizedGains = confirmedAssets.reduce((sum: number, p: any) => {
-    const cost = p.units * unitCost(p.batch);
-    const estimatedEndValue =
-      p.units * parseFloat(p.batch?.estimatedSalePriceLow || "0");
-    return sum + Math.max(0, estimatedEndValue - cost);
+    return sum + Number(p.amount || 0);
   }, 0);
 
   return (
@@ -114,19 +96,7 @@ export default function PortfolioScreen() {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           })}
-          trend="Est. Growth"
-        />
-
-        <UnrealizedGainsCard
-          value={unrealizedGains.toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-          })}
-          progress={
-            totalValue > 0
-              ? Math.min(100, Math.round((unrealizedGains / totalValue) * 100))
-              : 0
-          }
+          trend="Confirmed Assets"
         />
 
         {/* ── Pending Orders Section ──────────────────────────────────────── */}

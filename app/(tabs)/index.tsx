@@ -24,6 +24,7 @@ import {
   useGetPurchasesQuery,
 } from "../../src/features/marketplace/marketplaceApi";
 import { RootState } from "../../src/store/store";
+import { getAvailableUnits, getFundedPercent } from "../../src/utils/batches";
 
 const healthColor: Record<string, string> = {
   EXCELLENT: Colors.emerald,
@@ -49,23 +50,6 @@ const unitCost = (batch: any) =>
   parseFloat(batch?.animalPrice || "0") +
   parseFloat(batch?.feedingFee || "0") +
   parseFloat(batch?.medicationFee || "0");
-
-const currentUnitValue = (batch: any) =>
-  parseFloat(batch?.currentMarketValueLow || "0") > 0
-    ? parseFloat(batch?.currentMarketValueLow || "0")
-    : unitCost(batch);
-
-function fundedPercent(batch: any): number {
-  const invested = batch._count?.investments
-    ? batch.investments?.reduce(
-        (a: number, inv: any) => a + (inv.units || 0),
-        0,
-      )
-    : 0;
-  return batch.totalUnits > 0
-    ? Math.min(100, Math.round((invested / batch.totalUnits) * 100))
-    : 0;
-}
 
 const TopBatchesList = () => {
   const router = useRouter();
@@ -99,23 +83,13 @@ const TopBatchesList = () => {
   return (
     <>
       {availableBatches.map((batch) => {
-        // Use the investments count from the backend _count field if available
-        // Note: For real accuracy, the backend should provide sum of units.
-        // Assuming 1 investment = X units, but for now using _count as a placeholder for activity.
-        const investorCount = batch._count?.investments || 0;
-        const progress =
-          batch.totalUnits > 0
-            ? Math.min(
-                100,
-                Math.round((investorCount / batch.totalUnits) * 100),
-              )
-            : 0;
+        const progress = getFundedPercent(batch);
 
         const cost = unitCost(batch);
         const roi =
           batch.estimatedSalePriceLow &&
-          batch.estimatedSalePriceHigh &&
-          cost > 0
+            batch.estimatedSalePriceHigh &&
+            cost > 0
             ? `${(((parseFloat(batch.estimatedSalePriceLow) - cost) / cost) * 100).toFixed(0)}% - ${(((parseFloat(batch.estimatedSalePriceHigh) - cost) / cost) * 100).toFixed(0)}%`
             : "N/A";
         const sColor = healthColor[batch.healthStatus] || Colors.emerald;
@@ -132,7 +106,7 @@ const TopBatchesList = () => {
             roi={roi}
             duration={durationLabel(batch.startDate, batch.endDate)}
             progress={progress}
-            unitsLeft={Math.max(0, batch.totalUnits - investorCount)}
+            unitsLeft={getAvailableUnits(batch)}
             status={batch.status === "OPEN" ? "Open" : "Active"}
             statusColor={sColor}
             progressColor={sColor}
@@ -169,22 +143,48 @@ const HomeScreen = () => {
     (p: any) => p.status === "CONFIRMED",
   );
 
-  const totalValue = confirmedPurchases.reduce((sum: number, p: any) => {
+  const confirmedAssets = React.useMemo(() => {
+    const assetsByBatch = new Map();
+
+    confirmedPurchases.forEach((purchase: any) => {
+      if (!purchase.batch) return;
+
+      const existing = assetsByBatch.get(purchase.batchId);
+      if (existing) {
+        existing.units += Number(purchase.units || 0);
+        existing.amount += Number(purchase.amount || 0);
+      } else {
+        assetsByBatch.set(purchase.batchId, {
+          batch: purchase.batch,
+          units: Number(purchase.units || 0),
+          amount: Number(purchase.amount || 0),
+        });
+      }
+    });
+
+    return Array.from(assetsByBatch.values());
+  }, [confirmedPurchases]);
+
+  const totalValue = confirmedAssets.reduce((sum: number, asset: any) => {
+    return sum + Number(asset.amount || 0);
+  }, 0);
+
+  const maturityValueLow = confirmedAssets.reduce((sum: number, asset: any) => {
     return (
       sum +
-      p.units *
-        currentUnitValue(p.batch)
+      asset.units * parseFloat(asset.batch?.estimatedSalePriceLow || "0")
     );
   }, 0);
 
-  const unrealizedGains = confirmedPurchases.reduce((sum: number, p: any) => {
-    const cost =
-      p.units *
-      currentUnitValue(p.batch);
-    const estimatedEndValue =
-      p.units * parseFloat(p.batch?.estimatedSalePriceLow || "0");
-    return sum + Math.max(0, estimatedEndValue - cost);
+  const maturityValueHigh = confirmedAssets.reduce((sum: number, asset: any) => {
+    return (
+      sum +
+      asset.units * parseFloat(asset.batch?.estimatedSalePriceHigh || "0")
+    );
   }, 0);
+
+  const profitLossLow = maturityValueLow - totalValue;
+  const profitLossHigh = maturityValueHigh - totalValue;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -232,7 +232,10 @@ const HomeScreen = () => {
         {/* ── Summary ───────────────────────────────────────────────────── */}
         <SummaryCard
           totalValue={totalValue}
-          unrealizedGains={unrealizedGains}
+          maturityValueLow={maturityValueLow}
+          maturityValueHigh={maturityValueHigh}
+          profitLossLow={profitLossLow}
+          profitLossHigh={profitLossHigh}
         />
 
         {/* ── Available Batches ─────────────────────────────────────────── */}

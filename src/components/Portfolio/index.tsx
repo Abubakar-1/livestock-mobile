@@ -40,9 +40,7 @@ export const PortfolioValueCard = ({
           style={{ marginLeft: 4, fontWeight: "700" }}
         >
           {trend}{" "}
-          <AppText variant="caption" color={Colors.textSecondary}>
-            vs last month
-          </AppText>
+
         </AppText>
       </View>
     </View>

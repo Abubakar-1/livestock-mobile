@@ -41,7 +41,7 @@ const Input: React.FC<InputProps> = ({
   return (
     <View style={[styles.container, containerStyle]}>
       {label && <Text style={styles.label}>{label}</Text>}
-      
+
       <View
         style={[
           styles.inputWrapper,
@@ -58,7 +58,7 @@ const Input: React.FC<InputProps> = ({
             style={styles.icon}
           />
         )}
-        
+
         <TextInput
           style={styles.input}
           placeholderTextColor={Colors.textMuted}
