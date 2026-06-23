@@ -48,13 +48,13 @@ export const SummaryCard = ({
       ? formatCurrency(low)
       : `${formatCurrency(low)} - ${formatCurrency(high)}`;
   const formatSignedCurrency = (value: number) =>
-    `${value >= 0 ? "+" : "-"}₦${Math.abs(value).toLocaleString()}`;
+    `${value >= 0 ? "" : ""}₦${Math.abs(value).toLocaleString()}`;
   const formatSignedCurrencyRange = (low: number, high: number) =>
     low === high
       ? formatSignedCurrency(low)
-      : `${formatSignedCurrency(low)} to ${formatSignedCurrency(high)}`;
+      : `${formatSignedCurrency(low)} - ${formatSignedCurrency(high)}`;
   const formatSignedPercent = (value: number) =>
-    `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+    `${value >= 0 ? "" : ""}${value.toFixed(2)}%`;
 
   const profitLossPercentLow =
     totalValue > 0 ? (profitLossLow / totalValue) * 100 : 0;
@@ -66,8 +66,8 @@ export const SummaryCard = ({
     profitLossPercentLow === profitLossPercentHigh
       ? formatSignedPercent(profitLossPercentLow)
       : `${formatSignedPercent(profitLossPercentLow)} - ${formatSignedPercent(
-        profitLossPercentHigh,
-      )}`;
+          profitLossPercentHigh,
+        )}`;
 
   return (
     <View style={styles.summaryCard}>
@@ -280,9 +280,9 @@ export const BatchCard = ({
             ₦
             {estReturn
               ? estReturn
-                .split(" - ")
-                .map((v: string) => Number(v).toLocaleString())
-                .join(" - ")
+                  .split(" - ")
+                  .map((v: string) => Number(v).toLocaleString())
+                  .join(" - ")
               : "---"}
           </AppText>
           {!isClosed && (
